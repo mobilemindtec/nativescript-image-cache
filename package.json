@@ -1,0 +1,16 @@
+{ 
+  "name" : "nativescript-image-cache",
+  "version": "0.0.15",
+  "main" : "image-cache.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mobilemindtec/nativescript-image-cache.git"
+  },
+  "license": "Apache-2.0",
+  "nativescript": {
+    "platforms": {
+      "ios": "3.3.0",
+      "android": "2.3.0"
+    }
+  }
+}
