@@ -9,8 +9,8 @@
   "license": "Apache-2.0",
   "nativescript": {
     "platforms": {
-      "ios": "3.3.0",
-      "android": "2.3.0"
+      "ios": "3.0.0",
+      "android": "3.0.0"
     }
-  }
+  } 
 }

@@ -1,5 +1,6 @@
 
 var application = require('application')
+var fs = require("file-system")
 
 var ImageChache = (function(){
 
@@ -29,16 +30,60 @@ var ImageChache = (function(){
 
   ImageChache.prototype.loadImage = function(args){
 
-  	var imageUri = args.imageUri
-  	var imageView = args.imageView.android
+  	var imageFromFile = args.imageFromFile
+  	var imageFromUrl = args.imageFromUrl
+  	var imageLocation
+
+  	var placeHolder = args.imagePlaceHolder
+  	var errorHolder = args.imageErrorHolder
+
+  	var nsImageView = args.imageView
+
   	var callback = args.callback
   	var progressCallback = args.callback
 
+  	if(placeHolder){
+  		placeHolder = nsPathResolver(placeHolder)
+  	}
+
+  	if(errorHolder){
+  		errorHolder = nsPathResolver(errorHolder)
+  	}
+
+  	if(imageFromFile){
+  		if(fs.File.exists(imageFromFile)){
+  			imageLocation = imageFromFile
+  		}
+  	}
+
+  	if(!imageLocation){
+  		imageLocation = imageFromUrl
+  	}
+
+  	if(!imageLocation){
+  		imageLocation = placeHolder
+  	}
+
+    if(placeHolder){
+    	nsImageView.src = placeHolder
+    }		    
+
   	var loader = com.nostra13.universalimageloader.core.ImageLoader.getInstance()
 
-		loader.displayImage(imageUri, imageView, new com.nostra13.universalimageloader.core.listener.ImageLoadingListener({
+  	console.log("load image from " + imageLocation)
+
+  	var imageView
+
+  	if(!nsImageView){
+  		imageView = new com.nostra13.universalimageloader.core.assist.ImageSize(100, 100)
+  	}else{
+  		imageView = nsImageView.android
+  	}
+
+		loader.loadImage(imageLocation, new com.nostra13.universalimageloader.core.listener.ImageLoadingListener({
 		    
 		    onLoadingStarted: function(imageUri, view) {
+		    	console.log("# ImageLoader.onLoadingStarted")
 		    	if(callback){
 			    	callback({
 			    		event: 'started',
@@ -49,26 +94,35 @@ var ImageChache = (function(){
 		    },
 		    
 		    onLoadingFailed: function(imageUri, view, failReason) {
+		    	console.log("# ImageLoader.onLoadingFailed")
 		    	if(callback){
 			    	callback({
 			    		event: 'failed',
 			    		imageUri: imageUri,
-			    		view: view
+			    		view: view,
+			    		failReason: failReason
 			    	})
+			    }
+
+			    if(errorHolder){
+			    	nsImageView.src = errorHolder
 			    }		    
 		    },
 		    
 		    onLoadingComplete: function(imageUri, view, loadedImage) {
+		    	console.log("# ImageLoader.onLoadingComplete")
 		    	if(callback){
 			    	callback({
 			    		event: 'complete',
 			    		imageUri: imageUri,
-			    		view: view
+			    		view: view,
+			    		loadedImage: loadedImage
 			    	})
 			    }		    
 		    },
 		    
 		    onLoadingCancelled: function(imageUri, view) {
+		    	console.log("# ImageLoader.onLoadingCancelled")
 		    	if(callback){
 			    	callback({
 			    		event: 'cancelled',
@@ -78,24 +132,26 @@ var ImageChache = (function(){
 			    }		    
 		    },
 
-		}), new com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener({
-		    
-		    onProgressUpdate: function(imageUri, view, current, total) {
-		        if(progressCallback){
-		        	progressCallback({
-		        		imageUri: imageUri,
-		        		view: view,
-		        		current: current,
-		        		total: total
-		        	})
-		        }
-		    },
 		}));
 
   }
 
+  function nsPathResolver(path) {
+  	
+  	var currentApp = fs.knownFolders.currentApp()  
+  	var newPath = path
+  	if(path.indexOf("~/") > -1){
+  		newPath = newPath.replace("~/", "")
+  		newPath = fs.path.join(currentApp.path, newPath)
+  	}
 
-})()
+  	return newPath
+
+  }
+
+  return ImageChache
+
+}())
 
 
 
